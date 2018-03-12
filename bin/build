@@ -1,0 +1,116 @@
+#!/usr/bin/env node
+
+const fetch = require('node-fetch');
+const tj = require('@mapbox/togeojson');
+const DOMParser = require('xmldom').DOMParser;
+// const turf = require('@turf/turf');
+const fs = require('fs');
+const cheerio = require('cheerio');
+const toCamelCase = require('to-camel-case');
+
+const fetchGrid = () => {
+  let kml;
+  
+  if (fs.existsSync(__dirname + '/../tmp/grid.kml')) {
+    kml = new Promise((resolve, reject) => {
+      fs.readFile(__dirname + '/../tmp/grid.kml', 'utf8', (err, data) => {
+        if (err)
+          return reject(err)
+        console.log('using cached grid')        
+        resolve(data)
+      })
+    })
+  } else {
+    console.log('downloading grid')
+    kml = fetch('https://sentinel.esa.int/documents/247904/1955685/S2A_OPER_GIP_TILPAR_MPC__20151209T095117_V20150622T000000_21000101T000000_B00.kml')
+      .then(d => d.text())
+      .then(d => {
+        console.log('caching grid')
+        return new Promise((resolve, reject) => {
+          fs.writeFile(__dirname + '/../tmp/grid.kml', d, (err) => {
+            if (err) {
+              return reject(err);
+            }
+            resolve(d)
+          })
+        })
+      })
+  }
+
+  return kml.then(d => {
+      const kml = new DOMParser().parseFromString(d);
+      const geojson = tj.kml(kml);
+      return geojson;
+    });
+}
+
+// const fetchLand = () => {
+//   return fetch('https://github.com/nvkelso/natural-earth-vector/raw/master/geojson/ne_10m_land.geojson')
+//     .then(res => res.json())
+// }
+
+const build = async () => {
+  const grid = await fetchGrid()
+
+  console.log('rewriting properties')
+
+  grid.features = grid.features.map(f => {
+    delete f.properties.styleUrl
+    delete f.properties.styleHash
+    delete f.properties.styleMapHash
+    delete f.properties.stroke
+    delete f.properties['stroke-opacity']
+    delete f.properties.fill
+    delete f.properties['fill-opacity']
+
+    $ = cheerio.load(f.properties.description)
+
+    $('tr').each((i, e) => {
+      const key = $(e).children().first().text()
+      const newKey = key === 'TILE_ID' ? 'id' : toCamelCase(key)
+      const val = $(e).children().last().text().substring(1)
+      f.properties[newKey] = val
+    })
+
+    delete f.properties.description
+
+    return f;
+  })
+
+  const f = grid.features[0];
+  
+  console.log(f)
+  
+
+  // console.log('downloading land')
+  // const land = await fetchLand()
+
+  // console.log(land)
+
+  // console.log('filtering out water tiles')
+  // const landTiles = grid.features.filter((tile, gridIndex) => {
+  //   for (let index = 0; index < land.features.length; index++) {
+  //     const landFeature = land.features[index];
+  //     const intersection = turf.intersect(tile, landFeature);
+  //     console.log(gridIndex / (grid.features.length - 1))
+  //     if (intersection) {
+  //       console.log(intersection)
+  //       return true;
+  //     }
+  //   }
+
+  //   return false;
+  // })
+
+  fs.writeFile(__dirname + '/../data/grid.json', JSON.stringify(grid), (err) => {
+    if (err) {
+      throw err;
+    }
+
+    console.log('complete')
+  })
+
+  // console.log(grid)
+}
+
+build().catch(console.error);

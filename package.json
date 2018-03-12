@@ -1,0 +1,36 @@
+{
+  "name": "sentinel-2-grid",
+  "version": "0.0.0",
+  "description": "ESA Sentinel Tile Grid as GeoJSON with extracted properties",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "@mapbox/togeojson": "^0.16.0",
+    "cheerio": "^1.0.0-rc.2",
+    "node-fetch": "^2.0.0",
+    "tap-summary": "^4.0.0",
+    "tape": "^4.9.0",
+    "to-camel-case": "^1.0.0"
+  },
+  "scripts": {
+    "build": "./bin/build",
+    "test": "./bin/test | tap-summary"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bencevans/sentinel-2-grid.git"
+  },
+  "keywords": [
+    "sentinel",
+    "satellite",
+    "grid",
+    "geojson",
+    "esa"
+  ],
+  "author": "Ben Evans <ben@bluechimp.io> (https://bencevans.io)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bencevans/sentinel-2-grid/issues"
+  },
+  "homepage": "https://github.com/bencevans/sentinel-2-grid#readme"
+}

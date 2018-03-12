@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+
+const test = require('tape')
+const grid = require('../')
+
+test('feature count', t => {
+  t.equal(grid.features.length, 56686)
+  t.end()
+})
+
+test('feature properties', t => {
+  grid.features.forEach(f => {
+    const p = f.properties
+
+    t.equal(Object.keys(p).length, 6)
+    t.equal(typeof p.name, 'string')
+    t.equal(typeof p.id, 'string')
+    t.equal(typeof p.epsg, 'string')
+    t.equal(typeof p.mgrsRef, 'string')
+    t.equal(typeof p.utmWkt, 'string')
+    t.equal(typeof p.llWkt, 'string')
+  })
+
+  t.end()
+})
