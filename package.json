@@ -1,6 +1,6 @@
 {
   "name": "sentinel-2-grid",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "ESA Sentinel Tile Grid as GeoJSON with extracted properties",
   "main": "index.js",
   "dependencies": {},
